@@ -1,3 +1,5 @@
+package ru.yandex.practicum.taskmanager.tasks;
+
 public class SubTask extends Task {
 
     protected int epicId;
@@ -14,7 +16,8 @@ public class SubTask extends Task {
     @Override
     public String toString() {
         return "SubTask{" +
-                "title='" + title + '\'' +
+                "epicId=" + epicId +
+                ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", id=" + id +
                 ", status=" + status +

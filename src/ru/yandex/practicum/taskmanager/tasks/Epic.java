@@ -1,3 +1,5 @@
+package ru.yandex.practicum.taskmanager.tasks;
+
 import java.util.ArrayList;
 
 public class Epic extends Task {
@@ -28,7 +30,8 @@ public class Epic extends Task {
     @Override
     public String toString() {
         return "Epic{" +
-                "title='" + title + '\'' +
+                "subtaskIds=" + subtaskIds +
+                ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", id=" + id +
                 ", status=" + status +
