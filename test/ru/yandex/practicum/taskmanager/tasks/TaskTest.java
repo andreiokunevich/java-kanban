@@ -2,12 +2,14 @@ package ru.yandex.practicum.taskmanager.tasks;
 
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.taskmanager.manager.InMemoryTaskManager;
+import ru.yandex.practicum.taskmanager.manager.TaskManager;
+import ru.yandex.practicum.taskmanager.util.Managers;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TaskTest {
 
-    InMemoryTaskManager inMemoryTaskManager = new InMemoryTaskManager();
+    TaskManager inMemoryTaskManager = Managers.getInMemoryTaskManager();
 
     @Test
     void checkEqualityOfTasks() {

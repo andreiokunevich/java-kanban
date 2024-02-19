@@ -3,17 +3,18 @@ package ru.yandex.practicum.taskmanager.tasks;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.taskmanager.manager.InMemoryTaskManager;
+import ru.yandex.practicum.taskmanager.manager.TaskManager;
+import ru.yandex.practicum.taskmanager.util.Managers;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class EpicTest {
 
-    private InMemoryTaskManager inMemoryTaskManager;
+    private TaskManager inMemoryTaskManager;
 
     @BeforeEach
     public void createNewTaskManager() {
-        inMemoryTaskManager = new InMemoryTaskManager();
+        inMemoryTaskManager = Managers.getInMemoryTaskManager();
     }
 
     @Test

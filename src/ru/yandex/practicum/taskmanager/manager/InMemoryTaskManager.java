@@ -71,23 +71,44 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task getTaskById(int id) {
-        inMemoryHistoryManager.add(tasks.get(id));
-        return new Task(tasks.get(id).getTitle(), tasks.get(id).getDescription(), tasks.get(id).getId(),
-                tasks.get(id).getStatus());
+        try {
+            Task task = tasks.get(id);
+            inMemoryHistoryManager.add(task);
+            return new Task(task.getTitle(), task.getDescription(), task.getId(), task.getStatus());
+        } catch (NullPointerException e) {
+            System.out.println("Задачи по такому айди нет.");
+            return new Task("", "", 0, Status.NEW);
+        }
     }
 
     @Override
     public SubTask getSubTaskById(int id) {
-        inMemoryHistoryManager.add(subtasks.get(id));
-        return new SubTask(subtasks.get(id).getTitle(), subtasks.get(id).getDescription(), subtasks.get(id).getId(),
-                subtasks.get(id).getStatus(), subtasks.get(id).getEpicId());
+        try {
+            SubTask subTask = subtasks.get(id);
+            inMemoryHistoryManager.add(subTask);
+            return new SubTask(subTask.getTitle(), subTask.getDescription(), subTask.getId(),
+                    subTask.getStatus(), subTask.getEpicId());
+        } catch (NullPointerException e) {
+            System.out.println("Подзадачи по такому айди нет.");
+            return new SubTask("", "", 0, Status.NEW, 0);
+        }
     }
 
     @Override
     public Epic getEpicById(int id) {
-        inMemoryHistoryManager.add(epics.get(id));
-        return new Epic(epics.get(id).getTitle(), epics.get(id).getDescription(), epics.get(id).getId(),
-                epics.get(id).getStatus());
+        try {
+            Epic epic = epics.get(id);
+            inMemoryHistoryManager.add(epic);
+            Epic copyEpic = new Epic(epic.getTitle(), epic.getDescription(), epic.getId(), epic.getStatus());
+            ArrayList<Integer> subtasks = epic.getSubtasksIds();
+            for (Integer subtask : subtasks) {
+                copyEpic.addSubtaskId(subtask);
+            }
+            return copyEpic;
+        } catch (NullPointerException e) {
+            System.out.println("Эпик по такому айди не найден.");
+            return new Epic("", "", 0, Status.NEW);
+        }
     }
 
     @Override
@@ -210,6 +231,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
+    @Override
     public List<Task> getHistory() {
         return inMemoryHistoryManager.getHistory();
     }

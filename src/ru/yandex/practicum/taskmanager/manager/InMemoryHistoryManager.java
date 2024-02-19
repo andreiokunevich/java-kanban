@@ -15,18 +15,25 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public List<Task> getHistory() {
-        return history;
+        return new ArrayList<>(history);
     }
 
     @Override
     public void add(Task task) {
+        if (task == null) {
+            return;
+        }
+
         Task taskCopy;
 
         if (task instanceof SubTask) {
-            taskCopy = new SubTask(task.getTitle(), task.getDescription(), task.getId(), task.getStatus(),
-                    ((SubTask) task).getEpicId());
+            taskCopy = new SubTask(task.getTitle(), task.getDescription(), task.getId(), task.getStatus(), ((SubTask) task).getEpicId());
         } else if (task instanceof Epic) {
             taskCopy = new Epic(task.getTitle(), task.getDescription(), task.getId(), task.getStatus());
+            ArrayList<Integer> subtasks = ((Epic) task).getSubtasksIds();
+            for (Integer subtask : subtasks) {
+                ((Epic) taskCopy).addSubtaskId(subtask);
+            }
         } else {
             taskCopy = new Task(task.getTitle(), task.getDescription(), task.getId(), task.getStatus());
         }

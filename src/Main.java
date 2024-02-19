@@ -23,7 +23,7 @@ public class Main {
         }
 
         System.out.println("История:");
-        for (Task task : ((InMemoryTaskManager) manager).getHistory()) {
+        for (Task task : manager.getHistory()) {
             System.out.println(task);
         }
     }
@@ -50,7 +50,9 @@ public class Main {
         subTask.setStatus(Status.DONE);
         manager.updateSubTask(subTask);
 
-        Task task1 = manager.getTaskById(idTask1);
+        manager.getTaskById(idTask1);
+
+        manager.getEpicById(idEpic1);
 
         printAllTasks(manager);
     }

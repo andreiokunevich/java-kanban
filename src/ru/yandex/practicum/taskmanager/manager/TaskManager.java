@@ -4,7 +4,7 @@ import ru.yandex.practicum.taskmanager.tasks.Epic;
 import ru.yandex.practicum.taskmanager.tasks.SubTask;
 import ru.yandex.practicum.taskmanager.tasks.Task;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public interface TaskManager {
     int createTask(Task task);
@@ -13,11 +13,11 @@ public interface TaskManager {
 
     int createEpic(Epic epic);
 
-    ArrayList<Task> getListOfTasks();
+    List<Task> getListOfTasks();
 
-    ArrayList<SubTask> getListOfSubTasks();
+    List<SubTask> getListOfSubTasks();
 
-    ArrayList<Epic> getListOfEpics();
+    List<Epic> getListOfEpics();
 
     Task getTaskById(int id);
 
@@ -37,11 +37,13 @@ public interface TaskManager {
 
     void deleteEpicById(int id);
 
-    ArrayList<SubTask> getAllSubTasksOfEpic(int idEpic);
+    List<SubTask> getAllSubTasksOfEpic(int idEpic);
 
     void updateTask(Task task);
 
     void updateSubTask(SubTask subTask);
 
     void updateEpic(Epic epic);
+
+    List<Task> getHistory();
 }

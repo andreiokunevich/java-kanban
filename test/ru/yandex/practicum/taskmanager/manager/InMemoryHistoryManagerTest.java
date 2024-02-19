@@ -6,6 +6,7 @@ import ru.yandex.practicum.taskmanager.tasks.Epic;
 import ru.yandex.practicum.taskmanager.tasks.Status;
 import ru.yandex.practicum.taskmanager.tasks.SubTask;
 import ru.yandex.practicum.taskmanager.tasks.Task;
+import ru.yandex.practicum.taskmanager.util.Managers;
 
 import java.util.List;
 
@@ -13,11 +14,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryHistoryManagerTest {
 
-    private InMemoryTaskManager inMemoryTaskManager;
+    private TaskManager inMemoryTaskManager;
 
     @BeforeEach
     public void createNewTaskManager() {
-        inMemoryTaskManager = new InMemoryTaskManager();
+        inMemoryTaskManager = Managers.getInMemoryTaskManager();
     }
 
     @Test
