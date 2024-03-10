@@ -4,6 +4,13 @@ import ru.yandex.practicum.taskmanager.util.Managers;
 
 public class Main {
 
+    private static void printHistory(TaskManager manager) {
+        System.out.println("История:");
+        for (Task task : manager.getHistory()) {
+            System.out.println(task);
+        }
+    }
+
     private static void printAllTasks(TaskManager manager) {
         System.out.println("Задачи:");
         for (Task task : manager.getListOfTasks()) {
@@ -22,10 +29,7 @@ public class Main {
             System.out.println(subtask);
         }
 
-        System.out.println("История:");
-        for (Task task : manager.getHistory()) {
-            System.out.println(task);
-        }
+        printHistory(manager);
     }
 
     public static void main(String[] args) {
@@ -36,24 +40,21 @@ public class Main {
         int idEpic2 = manager.createEpic(new Epic("Epic_2", "Epic_2", 0, Status.NEW));
         int idSubtask1Epic1 = manager.createSubTask(new SubTask("Subtask_1_Of_Epic_1", "Subtask_1_Of_Epic_1", 0, Status.NEW, idEpic1));
         int idSubtask2Epic1 = manager.createSubTask(new SubTask("Subtask_2_Of_Epic_1", "Subtask_2_Of_Epic_1", 0, Status.NEW, idEpic1));
-        int idSubtask1Epic2 = manager.createSubTask(new SubTask("Subtask_1_Of_Epic_2", "Subtask_1_Of_Epic_2", 0, Status.NEW, idEpic2));
-
-        SubTask subTask1 = manager.getSubTaskById(idSubtask2Epic1);
-        subTask1.setStatus(Status.DONE);
-        manager.updateSubTask(subTask1);
-
-        Task task = manager.getTaskById(idTask1);
-        task.setStatus(Status.DONE);
-        manager.updateTask(task);
-
-        SubTask subTask = manager.getSubTaskById(idSubtask1Epic1);
-        subTask.setStatus(Status.DONE);
-        manager.updateSubTask(subTask);
-
-        manager.getTaskById(idTask1);
+        int idSubtask3Epic1 = manager.createSubTask(new SubTask("Subtask_3_Of_Epic_1", "Subtask_3_Of_Epic_1", 0, Status.NEW, idEpic1));
 
         manager.getEpicById(idEpic1);
-
-        printAllTasks(manager);
+        manager.getSubTaskById(idSubtask1Epic1);
+        manager.getTaskById(idTask1);
+        manager.getSubTaskById(idSubtask2Epic1);
+        manager.getSubTaskById(idSubtask3Epic1);
+        manager.getEpicById(idEpic2);
+        manager.getTaskById(idTask1);
+        manager.getSubTaskById(idSubtask1Epic1);
+        manager.getEpicById(idEpic1);
+        printHistory(manager);
+        manager.deleteTaskById(idTask1);
+        printHistory(manager);
+        manager.deleteEpicById(idEpic1);
+        printHistory(manager);
     }
 }

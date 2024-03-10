@@ -2,7 +2,6 @@ package ru.yandex.practicum.taskmanager.tasks;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.taskmanager.manager.InMemoryTaskManager;
 import ru.yandex.practicum.taskmanager.manager.TaskManager;
 import ru.yandex.practicum.taskmanager.util.Managers;
 

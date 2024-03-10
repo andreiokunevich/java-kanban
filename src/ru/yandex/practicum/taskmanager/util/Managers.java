@@ -7,6 +7,9 @@ import ru.yandex.practicum.taskmanager.manager.TaskManager;
 
 public class Managers {
 
+    private Managers() {
+    }
+
     public static TaskManager getDefault() {
         return getInMemoryTaskManager();
     }

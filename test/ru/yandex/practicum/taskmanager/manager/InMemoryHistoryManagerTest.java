@@ -17,7 +17,7 @@ class InMemoryHistoryManagerTest {
     private TaskManager inMemoryTaskManager;
 
     @BeforeEach
-    public void createNewTaskManager() {
+    void createNewTaskManager() {
         inMemoryTaskManager = Managers.getInMemoryTaskManager();
     }
 
@@ -33,47 +33,62 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    void addTasksToHistoryCheckVersionsOfTasks() {
-        Task task = new Task("Task", "Task", 0, Status.NEW);
-        int taskId = inMemoryTaskManager.createTask(task);
-        Task savedTaskNew = inMemoryTaskManager.getTaskById(taskId);
-        savedTaskNew.setStatus(Status.DONE);
-        inMemoryTaskManager.updateTask(savedTaskNew);
-        Task savedTaskDone = inMemoryTaskManager.getTaskById(taskId);
+    void historyShouldNotHasDuplicates() {
+        int idTask1 = inMemoryTaskManager.createTask(new Task("Task_1", "Task_1", 0, Status.NEW));
+        int idTask2 = inMemoryTaskManager.createTask(new Task("Task_2", "Task_2", 0, Status.NEW));
+        int idEpic1 = inMemoryTaskManager.createEpic(new Epic("Epic_1", "Epic_1", 0, Status.NEW));
+        int idSubtask1Epic1 = inMemoryTaskManager.createSubTask(new SubTask("Subtask_1_Of_Epic_1", "Subtask_1_Of_Epic_1", 0, Status.NEW, idEpic1));
+        int idSubtask2Epic1 = inMemoryTaskManager.createSubTask(new SubTask("Subtask_2_Of_Epic_1", "Subtask_2_Of_Epic_1", 0, Status.NEW, idEpic1));
 
-        assertEquals(2, inMemoryTaskManager.getHistory().size(), "Задачи не добавились в историю.");
-        assertEquals(Status.NEW, inMemoryTaskManager.getHistory().get(0).getStatus(),
-                "Изначально созданная задача не сохранилась в истории со старым статусом.");
-        assertEquals(Status.DONE, inMemoryTaskManager.getHistory().get(1).getStatus(),
-                "Измененная задача не добавилась в историю.");
+        inMemoryTaskManager.getTaskById(idTask1);
+        inMemoryTaskManager.getEpicById(idEpic1);
+        inMemoryTaskManager.getSubTaskById(idSubtask1Epic1);
+        inMemoryTaskManager.getSubTaskById(idSubtask2Epic1);
 
-        Epic epic = new Epic("Epic", "Epic", 0, Status.NEW);
-        final int epicId = inMemoryTaskManager.createEpic(epic);
-        Epic epic1 = inMemoryTaskManager.getEpicById(epicId);
-
-        SubTask subTask = new SubTask("Subtask", "Subtask", 0, Status.NEW, epicId);
-        final int subTaskId = inMemoryTaskManager.createSubTask(subTask);
-        SubTask subTask1 = inMemoryTaskManager.getSubTaskById(subTaskId);
-        subTask1.setStatus(Status.IN_PROGRESS);
-        inMemoryTaskManager.updateSubTask(subTask1);
-        SubTask subTask2 = inMemoryTaskManager.getSubTaskById(subTaskId);
-        Epic epic2 = inMemoryTaskManager.getEpicById(epicId);
-
-        assertEquals(6, inMemoryTaskManager.getHistory().size(), "Задачи не добавились в историю.");
-        assertEquals(Status.IN_PROGRESS, inMemoryTaskManager.getHistory().get(4).getStatus(),
-                "Изначально созданная задача не сохранилась в истории со старым статусом.");
-        assertEquals(Status.IN_PROGRESS, inMemoryTaskManager.getHistory().get(5).getStatus(),
-                "Измененная задача не добавилась в историю.");
+        final List<Task> history = inMemoryTaskManager.getHistory();
+        List<Task> historyCompare = List.of(history.get(1), history.get(2), history.get(3), history.get(0));
+        inMemoryTaskManager.getTaskById(idTask1);
+        final List<Task> historyNew = inMemoryTaskManager.getHistory();
+        assertEquals(historyCompare, historyNew, "В истории появился дубликат.");
     }
 
     @Test
-    public void sizeOfHistoryCantBeMoreTenElements() {
-        for (int i = 1; i < 15; i++) {
-            Task task = new Task("Task", "Task", 0, Status.NEW);
-            int taskId = inMemoryTaskManager.createTask(task);
-            Task savedTaskNew = inMemoryTaskManager.getTaskById(taskId);
-        }
+    void deleteTaskShouldDeleteItFromHistory() {
+        int idTask1 = inMemoryTaskManager.createTask(new Task("Task_1", "Task_1", 0, Status.NEW));
+        int idTask2 = inMemoryTaskManager.createTask(new Task("Task_2", "Task_2", 0, Status.NEW));
+        int idEpic1 = inMemoryTaskManager.createEpic(new Epic("Epic_1", "Epic_1", 0, Status.NEW));
+        int idSubtask1Epic1 = inMemoryTaskManager.createSubTask(new SubTask("Subtask_1_Of_Epic_1", "Subtask_1_Of_Epic_1", 0, Status.NEW, idEpic1));
+        int idSubtask2Epic1 = inMemoryTaskManager.createSubTask(new SubTask("Subtask_2_Of_Epic_1", "Subtask_2_Of_Epic_1", 0, Status.NEW, idEpic1));
 
-        assertEquals(10, inMemoryTaskManager.getHistory().size(), "Размер истории больше возможного.");
+        inMemoryTaskManager.getTaskById(idTask1);
+        inMemoryTaskManager.getEpicById(idEpic1);
+        inMemoryTaskManager.getSubTaskById(idSubtask1Epic1);
+        inMemoryTaskManager.getSubTaskById(idSubtask2Epic1);
+
+        final List<Task> history = inMemoryTaskManager.getHistory();
+        List<Task> historyCompare = List.of(history.get(1), history.get(2), history.get(3));
+        inMemoryTaskManager.deleteTaskById(idTask1);
+        final List<Task> historyNew = inMemoryTaskManager.getHistory();
+        assertEquals(historyCompare, historyNew, "После удаления задачи она не удалилась из истории.");
+    }
+
+    @Test
+    void deleteEpicShouldDeleteEpicAndSubtasksFromHistory() {
+        int idTask1 = inMemoryTaskManager.createTask(new Task("Task_1", "Task_1", 0, Status.NEW));
+        int idTask2 = inMemoryTaskManager.createTask(new Task("Task_2", "Task_2", 0, Status.NEW));
+        int idEpic1 = inMemoryTaskManager.createEpic(new Epic("Epic_1", "Epic_1", 0, Status.NEW));
+        int idSubtask1Epic1 = inMemoryTaskManager.createSubTask(new SubTask("Subtask_1_Of_Epic_1", "Subtask_1_Of_Epic_1", 0, Status.NEW, idEpic1));
+        int idSubtask2Epic1 = inMemoryTaskManager.createSubTask(new SubTask("Subtask_2_Of_Epic_1", "Subtask_2_Of_Epic_1", 0, Status.NEW, idEpic1));
+
+        inMemoryTaskManager.getTaskById(idTask1);
+        inMemoryTaskManager.getEpicById(idEpic1);
+        inMemoryTaskManager.getSubTaskById(idSubtask1Epic1);
+        inMemoryTaskManager.getSubTaskById(idSubtask2Epic1);
+
+        final List<Task> history = inMemoryTaskManager.getHistory();
+        List<Task> historyCompare = List.of(history.get(0));
+        inMemoryTaskManager.deleteEpicById(idEpic1);
+        final List<Task> historyNew = inMemoryTaskManager.getHistory();
+        assertEquals(historyCompare, historyNew, "После удаления эпика в истории остались связанные с ним подзадачи.");
     }
 }
