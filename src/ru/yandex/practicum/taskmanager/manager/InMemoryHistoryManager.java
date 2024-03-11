@@ -1,21 +1,78 @@
 package ru.yandex.practicum.taskmanager.manager;
 
-import ru.yandex.practicum.taskmanager.tasks.Epic;
-import ru.yandex.practicum.taskmanager.tasks.SubTask;
 import ru.yandex.practicum.taskmanager.tasks.Task;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InMemoryHistoryManager implements HistoryManager {
+    private Node<Task> head;
+    private Node<Task> tail;
 
-    private static final int HISTORY_CAPACITY = 10;
+    private final Map<Integer, Node<Task>> nodeMap = new HashMap<>();
 
-    private final List<Task> history = new ArrayList<>(HISTORY_CAPACITY);
+    private static class Node<T> {
+        public Node<T> prev;
+        public Node<T> next;
+        public T data;
+
+        public Node(Node<T> prev, T data, Node<T> next) {
+            this.data = data;
+            this.prev = prev;
+            this.next = next;
+        }
+    }
+
+    private void linkLast(Task task) {
+        final Node<Task> newNode = new Node<>(tail, task, null);
+        if (head == null) {
+            head = newNode;
+        } else {
+            tail.next = newNode;
+        }
+        tail = newNode;
+        nodeMap.put(task.getId(), newNode);
+    }
+
+    private List<Task> getTasks() {
+        List<Task> tasks = new ArrayList<>();
+        Node<Task> node = head;
+        while (node != null) {
+            tasks.add(node.data);
+            node = node.next;
+        }
+        return tasks;
+    }
+
+    private void removeNode(Node<Task> node) {
+        if (node != null) {
+            if (node == head && node == tail) {
+                head = null;
+                tail = null;
+            } else if (node == head) {
+                node.next.prev = null;
+                head = node.next;
+            } else if (node == tail) {
+                node.prev.next = null;
+                tail = node.prev;
+            } else {
+                node.next.prev = node.prev;
+                node.prev.next = node.next;
+            }
+        }
+    }
 
     @Override
     public List<Task> getHistory() {
-        return new ArrayList<>(history);
+        return getTasks();
+    }
+
+    @Override
+    public void remove(int id) {
+        removeNode(nodeMap.get(id));
+        nodeMap.remove(id);
     }
 
     @Override
@@ -23,24 +80,9 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (task == null) {
             return;
         }
-
-        Task taskCopy;
-
-        if (task instanceof SubTask) {
-            taskCopy = new SubTask(task.getTitle(), task.getDescription(), task.getId(), task.getStatus(), ((SubTask) task).getEpicId());
-        } else if (task instanceof Epic) {
-            taskCopy = new Epic(task.getTitle(), task.getDescription(), task.getId(), task.getStatus());
-            ArrayList<Integer> subtasks = ((Epic) task).getSubtasksIds();
-            for (Integer subtask : subtasks) {
-                ((Epic) taskCopy).addSubtaskId(subtask);
-            }
-        } else {
-            taskCopy = new Task(task.getTitle(), task.getDescription(), task.getId(), task.getStatus());
+        if (nodeMap.containsKey(task.getId())) {
+            removeNode(nodeMap.get(task.getId()));
         }
-
-        if (history.size() == HISTORY_CAPACITY) {
-            history.remove(0);
-        }
-        history.add(taskCopy);
+        linkLast(task);
     }
 }

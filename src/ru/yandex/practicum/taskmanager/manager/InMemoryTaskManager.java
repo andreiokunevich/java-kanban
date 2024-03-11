@@ -71,32 +71,29 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task getTaskById(int id) {
-        try {
+        if (tasks.containsKey(id)) {
             Task task = tasks.get(id);
             inMemoryHistoryManager.add(task);
             return new Task(task.getTitle(), task.getDescription(), task.getId(), task.getStatus());
-        } catch (NullPointerException e) {
-            System.out.println("Задачи по такому айди нет.");
-            return new Task("", "", 0, Status.NEW);
         }
+        return null;
+
     }
 
     @Override
     public SubTask getSubTaskById(int id) {
-        try {
+        if (subtasks.containsKey(id)) {
             SubTask subTask = subtasks.get(id);
             inMemoryHistoryManager.add(subTask);
             return new SubTask(subTask.getTitle(), subTask.getDescription(), subTask.getId(),
                     subTask.getStatus(), subTask.getEpicId());
-        } catch (NullPointerException e) {
-            System.out.println("Подзадачи по такому айди нет.");
-            return new SubTask("", "", 0, Status.NEW, 0);
         }
+        return null;
     }
 
     @Override
     public Epic getEpicById(int id) {
-        try {
+        if (epics.containsKey(id)) {
             Epic epic = epics.get(id);
             inMemoryHistoryManager.add(epic);
             Epic copyEpic = new Epic(epic.getTitle(), epic.getDescription(), epic.getId(), epic.getStatus());
@@ -105,14 +102,16 @@ public class InMemoryTaskManager implements TaskManager {
                 copyEpic.addSubtaskId(subtask);
             }
             return copyEpic;
-        } catch (NullPointerException e) {
-            System.out.println("Эпик по такому айди не найден.");
-            return new Epic("", "", 0, Status.NEW);
         }
+        return null;
     }
 
     @Override
     public void deleteAllTasks() {
+        for (Integer taskId : tasks.keySet()) {
+            inMemoryHistoryManager.remove(taskId);
+        }
+
         tasks.clear();
     }
 
@@ -122,17 +121,29 @@ public class InMemoryTaskManager implements TaskManager {
             epic.cleanSubtaskIds();
             updateStatusOfEpic(epic.getId());
         }
+
+        for (Integer subId : subtasks.keySet()) {
+            inMemoryHistoryManager.remove(subId);
+        }
         subtasks.clear();
     }
 
     @Override
     public void deleteAllEpics() {
+        for (Integer epicId : epics.keySet()) {
+            inMemoryHistoryManager.remove(epicId);
+        }
         epics.clear();
+
+        for (Integer subId : subtasks.keySet()) {
+            inMemoryHistoryManager.remove(subId);
+        }
         subtasks.clear();
     }
 
     @Override
     public void deleteTaskById(int id) {
+        inMemoryHistoryManager.remove(id);
         tasks.remove(id);
     }
 
@@ -142,6 +153,7 @@ public class InMemoryTaskManager implements TaskManager {
             int epicId = subtasks.get(id).getEpicId();
             epics.get(epicId).removeSubtask(id);
             updateStatusOfEpic(epicId);
+            inMemoryHistoryManager.remove(id);
             subtasks.remove(id);
         } else {
             System.out.println("Подзадача не найдена");
@@ -153,8 +165,10 @@ public class InMemoryTaskManager implements TaskManager {
         if (epics.containsKey(id)) {
             ArrayList<Integer> idsSubtasksOfEpic = epics.get(id).getSubtasksIds();
             for (Integer idSubtask : idsSubtasksOfEpic) {
+                inMemoryHistoryManager.remove(idSubtask);
                 subtasks.remove(idSubtask);
             }
+            inMemoryHistoryManager.remove(id);
             epics.remove(id);
         } else {
             System.out.println("Эпик не найден");
@@ -175,10 +189,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateTask(Task task) {
         if (tasks.get(task.getId()) != null) {
-            Task taskToUpdate = tasks.get(task.getId());
-            taskToUpdate.setTitle(task.getTitle());
-            taskToUpdate.setDescription(task.getDescription());
-            taskToUpdate.setStatus(task.getStatus());
+            tasks.put(task.getId(), task);
         } else {
             System.out.println("Задача для обновления не найдена.");
         }
