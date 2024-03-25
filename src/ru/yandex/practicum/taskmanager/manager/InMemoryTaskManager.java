@@ -14,11 +14,11 @@ public class InMemoryTaskManager implements TaskManager {
 
     private int id = 1;
 
-    private final HistoryManager inMemoryHistoryManager = Managers.getDefaultHistory();
+    protected final HistoryManager inMemoryHistoryManager = Managers.getDefaultHistory();
 
-    private final HashMap<Integer, Task> tasks = new HashMap<>();
-    private final HashMap<Integer, SubTask> subtasks = new HashMap<>();
-    private final HashMap<Integer, Epic> epics = new HashMap<>();
+    protected final HashMap<Integer, Task> tasks = new HashMap<>();
+    protected final HashMap<Integer, SubTask> subtasks = new HashMap<>();
+    protected final HashMap<Integer, Epic> epics = new HashMap<>();
 
 
     private int generateNewId() {
