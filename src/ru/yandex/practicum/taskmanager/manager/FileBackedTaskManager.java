@@ -11,6 +11,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
@@ -27,21 +28,37 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
             fileWriter.write(head);
             for (Task task : getListOfTasks()) {
-                fileWriter.write(task.toString() + "\n");
+                fileWriter.write(toString(task) + "\n");
             }
 
             for (Epic epic : getListOfEpics()) {
-                fileWriter.write(epic.toString() + "\n");
+                fileWriter.write(toString(epic) + "\n");
             }
 
             for (SubTask subTask : getListOfSubTasks()) {
-                fileWriter.write(subTask.toString() + "\n");
+                fileWriter.write(toString(subTask) + "\n");
             }
 
+            fileWriter.write(" \n");
             fileWriter.write(historyToString(inMemoryHistoryManager));
         } catch (IOException e) {
             throw new ManagerSaveException("Произошла ошибка во время записи в файл: " + fileSave);
         }
+    }
+
+    public String toString(Task task) {
+        String taskInString;
+        if (task instanceof Epic) {
+            taskInString = task.getId() + "," + task.getType() + "," + task.getTitle() + "," + task.getStatus() + ","
+                    + task.getDescription();
+        } else if (task instanceof SubTask) {
+            taskInString = task.getId() + "," + task.getType() + "," + task.getTitle() + "," + task.getStatus() + ","
+                    + task.getDescription() + "," + ((SubTask) task).getEpicId();
+        } else {
+            taskInString = task.getId() + "," + task.getType() + "," + task.getTitle() + "," + task.getStatus() + ","
+                    + task.getDescription();
+        }
+        return taskInString;
     }
 
     static String historyToString(HistoryManager manager) {
@@ -59,34 +76,34 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     static List<Integer> historyFromString(String value) {
         List<Integer> history = new ArrayList<>();
-        String[] elements = value.split(",");
-        for (int i = 0; i < elements.length; i++) {
-            history.add(Integer.parseInt(elements[i]));
+        if (value != null) {
+            String[] elements = value.split(",");
+            if (Character.isDigit(value.charAt(0))) {
+                for (String element : elements) {
+                    history.add(Integer.parseInt(element));
+                }
+            } else {
+                return null;
+            }
         }
         return history;
     }
 
     public void restoreHistory(List<Integer> history) {
-        List<Task> tasks = getListOfTasks();
-        List<SubTask> subTasks = getListOfSubTasks();
-        List<Epic> epics = getListOfEpics();
+        if (history != null) {
+            Map<Integer, Task> tasks = super.tasks;
+            Map<Integer, SubTask> subtasks = super.subtasks;
+            Map<Integer, Epic> epics = super.epics;
 
-        for (Integer id : history) {
-            for (Task task : tasks) {
-                if (id == task.getId()) {
-                    inMemoryHistoryManager.add(task);
-                }
-            }
-
-            for (SubTask subTask : subTasks) {
-                if (id == subTask.getId()) {
-                    inMemoryHistoryManager.add(subTask);
-                }
-            }
-
-            for (Epic epic : epics) {
-                if (id == epic.getId()) {
-                    inMemoryHistoryManager.add(epic);
+            for (Integer id : history) {
+                if (tasks.get(id) != null) {
+                    inMemoryHistoryManager.add(tasks.get(id));
+                } else if (subtasks.get(id) != null) {
+                    inMemoryHistoryManager.add(subtasks.get(id));
+                } else if (epics.get(id) != null) {
+                    inMemoryHistoryManager.add(epics.get(id));
+                } else {
+                    return;
                 }
             }
         }
@@ -136,10 +153,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         try (Reader fileReader = new FileReader(file)) {
             BufferedReader br = new BufferedReader(fileReader);
             String line;
-            String lastLine = getLastLine(file);
 
+            br.readLine();
             while (br.ready()) {
-                if (!(line = br.readLine()).equals(lastLine)) {
+                if (!(line = br.readLine()).equals(" ")) {
                     Task task = fromString(line);
                     if (task != null) {
                         if (task instanceof Epic) {
@@ -151,9 +168,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         } else {
                             fileBackedTaskManager.tasks.put(task.getId(), task);
                         }
+                        fileBackedTaskManager.id = fileBackedTaskManager.maxId();
                     }
                 } else {
-                    fileBackedTaskManager.restoreHistory(historyFromString(line));
+                    fileBackedTaskManager.restoreHistory(historyFromString(br.readLine()));
                 }
             }
         } catch (IOException e) {
@@ -162,19 +180,30 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return fileBackedTaskManager;
     }
 
-    private static String getLastLine(File file) {
-        String line = null;
-        String nextLine;
-        try (Reader fileReader = new FileReader(file)) {
-            BufferedReader br = new BufferedReader(fileReader);
+    private int maxId() {
+        Map<Integer, Task> tasks = super.tasks;
+        Map<Integer, SubTask> subtasks = super.subtasks;
+        Map<Integer, Epic> epics = super.epics;
 
-            while ((nextLine = br.readLine()) != null) {
-                line = nextLine;
+        int max = 0;
+        for (Integer id : tasks.keySet()) {
+            if (id > max) {
+                max = id;
             }
-        } catch (IOException e) {
-            throw new ManagerLoadException("Произошла ошибка при загрузке файла: " + file);
         }
-        return line;
+
+        for (Integer id : subtasks.keySet()) {
+            if (id > max) {
+                max = id;
+            }
+        }
+
+        for (Integer id : epics.keySet()) {
+            if (id > max) {
+                max = id;
+            }
+        }
+        return max + 1;
     }
 
     @Override

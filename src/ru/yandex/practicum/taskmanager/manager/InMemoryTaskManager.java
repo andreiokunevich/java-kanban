@@ -12,7 +12,7 @@ import ru.yandex.practicum.taskmanager.util.Managers;
 
 public class InMemoryTaskManager implements TaskManager {
 
-    private int id = 1;
+    protected int id = 1;
 
     protected final HistoryManager inMemoryHistoryManager = Managers.getDefaultHistory();
 

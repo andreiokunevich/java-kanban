@@ -58,6 +58,7 @@ public class Main {
 
         fileBackedTaskManager.getTaskById(idTask1);
         fileBackedTaskManager.getTaskById(idTask2);
+        fileBackedTaskManager.getSubTaskById(idSubtask3Epic1);
         fileBackedTaskManager.getSubTaskById(idSubtask1Epic1);
         printAllTasks(fileBackedTaskManager);
     }
