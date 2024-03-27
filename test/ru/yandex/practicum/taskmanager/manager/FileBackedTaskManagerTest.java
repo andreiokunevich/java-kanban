@@ -51,15 +51,6 @@ class FileBackedTaskManagerTest {
         assertEquals(5, Files.lines(file.toPath()).count() - 1, "Количество сохраненных задач не совпадает.");
     }
 
-    @Test
-    void saveTasksAndHistoryToFile() throws IOException {
-        int idTask1 = manager.createTask(new Task("Task_1", "Task_1", 0, Status.NEW));
-        int idEpic1 = manager.createEpic(new Epic("Epic_1", "Epic_1", 0, Status.NEW));
-        manager.getTaskById(idTask1);
-        manager.getEpicById(idEpic1);
-
-        assertEquals(4, Files.lines(file.toPath()).count() - 1, "Количество сохраненных задач и истории не совпадает.");
-    }
 
     @Test
     void loadTasksAndHistoryFromFile() {
@@ -77,6 +68,31 @@ class FileBackedTaskManagerTest {
         assertEquals(1, loadedManager.getListOfEpics().size(), "Количество загруженных эпиков не совпадает с количеством сохраненных.");
         assertEquals(2, loadedManager.getListOfSubTasks().size(), "Количество загруженных подзадач не совпадает с количеством сохраненных.");
         assertEquals(3, loadedManager.getHistory().size(), "Количество задач в истории не совпадает с количеством просмотренных.");
+
+        Task originalTask = manager.getTaskById(idTask1);
+        Task fromFileTask = loadedManager.getTaskById(idTask1);
+
+        assertEquals(originalTask, fromFileTask, "ID задачи не совпадает.");
+        assertEquals(originalTask.getStatus(), fromFileTask.getStatus(), "Статус задачи не совпадает.");
+        assertEquals(originalTask.getTitle(), fromFileTask.getTitle(), "Название задачи не совпадает.");
+        assertEquals(originalTask.getDescription(), fromFileTask.getDescription(), "Описание задачи не совпадает.");
+
+        SubTask originalSubtask = manager.getSubTaskById(idSubtask1Epic1);
+        SubTask fromFileSubtask = loadedManager.getSubTaskById(idSubtask1Epic1);
+
+        assertEquals(originalSubtask, fromFileSubtask, "ID подзадачи не совпадает.");
+        assertEquals(originalSubtask.getStatus(), fromFileSubtask.getStatus(), "Статус подзадачи не совпадает.");
+        assertEquals(originalSubtask.getTitle(), fromFileSubtask.getTitle(), "Название подзадачи не совпадает.");
+        assertEquals(originalSubtask.getDescription(), fromFileSubtask.getDescription(), "Описание подзадачи не совпадает.");
+        assertEquals(originalSubtask.getEpicId(), fromFileSubtask.getEpicId(), "ID эпика не совпадает");
+
+        Epic originalEpic = manager.getEpicById(idEpic1);
+        Epic fromFileEpic = loadedManager.getEpicById(idEpic1);
+
+        assertEquals(originalEpic, fromFileEpic, "ID эпика не совпадает.");
+        assertEquals(originalEpic.getStatus(), fromFileEpic.getStatus(), "Статус эпика не совпадает.");
+        assertEquals(originalEpic.getTitle(), fromFileEpic.getTitle(), "Название эпика не совпадает.");
+        assertEquals(originalEpic.getDescription(), fromFileEpic.getDescription(), "Описание эпика не совпадает.");
     }
 
     @Test
@@ -89,5 +105,17 @@ class FileBackedTaskManagerTest {
 
         assertTrue(loadedManager.getEpicById(idEpic1).getSubtasksIds().contains(idSubtask1Epic1));
         assertTrue(loadedManager.getEpicById(idEpic1).getSubtasksIds().contains(idSubtask2Epic1));
+    }
+
+    @Test
+    void checkThatMaximumIdRestoredFromFile() {
+        int idTask1 = manager.createTask(new Task("Task_1", "Task_1", 0, Status.NEW));
+        int idEpic1 = manager.createEpic(new Epic("Epic_1", "Epic_1", 0, Status.NEW));
+
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(file);
+
+        int idNewTask = loadedManager.createTask(new Task("Task_2", "Task_2", 0, Status.NEW));
+
+        assertEquals(3, idNewTask);
     }
 }
