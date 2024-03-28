@@ -8,12 +8,18 @@ public class Task {
     protected String description;
     protected int id;
     protected Status status;
+    protected Type type;
 
     public Task(String title, String description, int id, Status status) {
         this.title = title;
         this.description = description;
         this.id = id;
         this.status = status;
+        this.type = Type.TASK;
+    }
+
+    public Type getType() {
+        return type;
     }
 
     public String getTitle() {
@@ -68,6 +74,6 @@ public class Task {
                 ", description='" + description + '\'' +
                 ", id=" + id +
                 ", status=" + status +
-                '}' + '\n';
+                '}';
     }
 }

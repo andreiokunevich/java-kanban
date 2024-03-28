@@ -1,6 +1,7 @@
 import ru.yandex.practicum.taskmanager.manager.*;
 import ru.yandex.practicum.taskmanager.tasks.*;
-import ru.yandex.practicum.taskmanager.util.Managers;
+
+import java.io.File;
 
 public class Main {
 
@@ -33,7 +34,8 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        TaskManager manager = Managers.getDefault();
+        TaskManager manager = new FileBackedTaskManager(new File("data.csv"));
+
         int idTask1 = manager.createTask(new Task("Task_1", "Task_1", 0, Status.NEW));
         int idTask2 = manager.createTask(new Task("Task_2", "Task_2", 0, Status.NEW));
         int idEpic1 = manager.createEpic(new Epic("Epic_1", "Epic_1", 0, Status.NEW));
@@ -42,19 +44,22 @@ public class Main {
         int idSubtask2Epic1 = manager.createSubTask(new SubTask("Subtask_2_Of_Epic_1", "Subtask_2_Of_Epic_1", 0, Status.NEW, idEpic1));
         int idSubtask3Epic1 = manager.createSubTask(new SubTask("Subtask_3_Of_Epic_1", "Subtask_3_Of_Epic_1", 0, Status.NEW, idEpic1));
 
-        manager.getEpicById(idEpic1);
-        manager.getSubTaskById(idSubtask1Epic1);
-        manager.getTaskById(idTask1);
+        manager.getTaskById(idTask2);
         manager.getSubTaskById(idSubtask2Epic1);
-        manager.getSubTaskById(idSubtask3Epic1);
         manager.getEpicById(idEpic2);
-        manager.getTaskById(idTask1);
-        manager.getSubTaskById(idSubtask1Epic1);
-        manager.getEpicById(idEpic1);
-        printHistory(manager);
-        manager.deleteTaskById(idTask1);
-        printHistory(manager);
-        manager.deleteEpicById(idEpic1);
-        printHistory(manager);
+        printAllTasks(manager);
+
+        System.out.println("\nПОСЛЕ ВОССТАНОВЛЕНИЯ ИЗ ФАЙЛА");
+
+        TaskManager fileBackedTaskManager = FileBackedTaskManager.loadFromFile(new File("data.csv"));
+        printAllTasks(fileBackedTaskManager);
+
+        System.out.println("\nПРОДОЛЖАЕМ РАБОТУ С ПОЛУЧЕННЫМ МЕНЕДЖЕРОМ");
+
+        fileBackedTaskManager.getTaskById(idTask1);
+        fileBackedTaskManager.getTaskById(idTask2);
+        fileBackedTaskManager.getSubTaskById(idSubtask3Epic1);
+        fileBackedTaskManager.getSubTaskById(idSubtask1Epic1);
+        printAllTasks(fileBackedTaskManager);
     }
 }
