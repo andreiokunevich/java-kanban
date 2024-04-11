@@ -1,6 +1,5 @@
 package ru.yandex.practicum.taskmanager.manager;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.taskmanager.tasks.Epic;
 import ru.yandex.practicum.taskmanager.tasks.Status;
@@ -10,17 +9,18 @@ import ru.yandex.practicum.taskmanager.tasks.Task;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class FileBackedTaskManagerTest {
-    private File file;
+class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
+    private final File file = new File("test.csv");
     private FileBackedTaskManager manager;
 
-    @BeforeEach
-    void createFileAndManager() throws IOException {
-        file = File.createTempFile("test", ".csv");
-        manager = new FileBackedTaskManager(file);
+    @Override
+    protected FileBackedTaskManager createTaskManager() {
+        return manager = new FileBackedTaskManager(file);
     }
 
     @Test
@@ -43,10 +43,16 @@ class FileBackedTaskManagerTest {
 
     @Test
     void saveTasksToFile() throws IOException {
-        int idTask1 = manager.createTask(new Task("Task_1", "Task_1", 0, Status.NEW));
-        int idEpic1 = manager.createEpic(new Epic("Epic_1", "Epic_1", 0, Status.NEW));
-        int idSubtask1Epic1 = manager.createSubTask(new SubTask("Subtask_1_Of_Epic_1", "Subtask_1_Of_Epic_1", 0, Status.NEW, idEpic1));
-        int idSubtask2Epic1 = manager.createSubTask(new SubTask("Subtask_2_Of_Epic_1", "Subtask_2_Of_Epic_1", 0, Status.NEW, idEpic1));
+        int idTask1 = manager.createTask(new Task("Task_1", "Task_1", 0, Status.NEW,
+                LocalDateTime.of(2024, 4, 8, 23, 0), Duration.ofMinutes(50)));
+        int idEpic1 = manager.createEpic(new Epic("Epic_1", "Epic_1", 0, Status.NEW,
+                LocalDateTime.of(2024, 4, 9, 10, 45),
+                LocalDateTime.of(2024, 4, 10, 22, 30),
+                Duration.ofMinutes(100)));
+        int idSubtask1Epic1 = manager.createSubTask(new SubTask("Subtask_1_Of_Epic_1", "Subtask_1_Of_Epic_1",
+                0, Status.NEW, idEpic1, LocalDateTime.of(2024, 4, 10, 10, 45), Duration.ofMinutes(37)));
+        int idSubtask2Epic1 = manager.createSubTask(new SubTask("Subtask_2_Of_Epic_1", "Subtask_2_Of_Epic_1",
+                0, Status.NEW, idEpic1, LocalDateTime.of(2024, 5, 10, 10, 45), Duration.ofMinutes(37)));
 
         assertEquals(5, Files.lines(file.toPath()).count() - 1, "Количество сохраненных задач не совпадает.");
     }
@@ -54,10 +60,15 @@ class FileBackedTaskManagerTest {
 
     @Test
     void loadTasksAndHistoryFromFile() {
-        int idTask1 = manager.createTask(new Task("Task_1", "Task_1", 0, Status.NEW));
-        int idEpic1 = manager.createEpic(new Epic("Epic_1", "Epic_1", 0, Status.NEW));
-        int idSubtask1Epic1 = manager.createSubTask(new SubTask("Subtask_1_Of_Epic_1", "Subtask_1_Of_Epic_1", 0, Status.NEW, idEpic1));
-        int idSubtask2Epic1 = manager.createSubTask(new SubTask("Subtask_2_Of_Epic_1", "Subtask_2_Of_Epic_1", 0, Status.NEW, idEpic1));
+        int idTask1 = manager.createTask(new Task("Task_1", "Task_1", 0, Status.NEW,
+                LocalDateTime.of(2024, 4, 8, 23, 0), Duration.ofMinutes(50)));
+        int idEpic1 = manager.createEpic(new Epic("Epic_1", "Epic_1", 0, Status.NEW,
+                LocalDateTime.of(2024, 4, 9, 10, 45),
+                LocalDateTime.of(2024, 4, 10, 22, 30), Duration.ofMinutes(100)));
+        int idSubtask1Epic1 = manager.createSubTask(new SubTask("Subtask_1_Of_Epic_1", "Subtask_1_Of_Epic_1", 0, Status.NEW, idEpic1,
+                LocalDateTime.of(2024, 4, 10, 10, 45), Duration.ofMinutes(37)));
+        int idSubtask2Epic1 = manager.createSubTask(new SubTask("Subtask_2_Of_Epic_1", "Subtask_2_Of_Epic_1", 0, Status.NEW, idEpic1,
+                LocalDateTime.of(2024, 5, 10, 10, 45), Duration.ofMinutes(37)));
         manager.getTaskById(idTask1);
         manager.getSubTaskById(idSubtask1Epic1);
         manager.getEpicById(idEpic1);
@@ -97,9 +108,13 @@ class FileBackedTaskManagerTest {
 
     @Test
     void checkThatSubtasksRestoredToEpicFromLoadedFile() {
-        int idEpic1 = manager.createEpic(new Epic("Epic_1", "Epic_1", 0, Status.NEW));
-        int idSubtask1Epic1 = manager.createSubTask(new SubTask("Subtask_1_Of_Epic_1", "Subtask_1_Of_Epic_1", 0, Status.NEW, idEpic1));
-        int idSubtask2Epic1 = manager.createSubTask(new SubTask("Subtask_2_Of_Epic_1", "Subtask_2_Of_Epic_1", 0, Status.NEW, idEpic1));
+        int idEpic1 = manager.createEpic(new Epic("Epic_1", "Epic_1", 0, Status.NEW,
+                LocalDateTime.of(2024, 4, 9, 10, 45),
+                LocalDateTime.of(2024, 4, 10, 22, 30), Duration.ofMinutes(100)));
+        int idSubtask1Epic1 = manager.createSubTask(new SubTask("Subtask_1_Of_Epic_1", "Subtask_1_Of_Epic_1", 0, Status.NEW, idEpic1,
+                LocalDateTime.of(2024, 4, 10, 10, 45), Duration.ofMinutes(37)));
+        int idSubtask2Epic1 = manager.createSubTask(new SubTask("Subtask_2_Of_Epic_1", "Subtask_2_Of_Epic_1", 0, Status.NEW, idEpic1,
+                LocalDateTime.of(2024, 5, 10, 10, 45), Duration.ofMinutes(37)));
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(file);
 
@@ -109,13 +124,30 @@ class FileBackedTaskManagerTest {
 
     @Test
     void checkThatMaximumIdRestoredFromFile() {
-        int idTask1 = manager.createTask(new Task("Task_1", "Task_1", 0, Status.NEW));
-        int idEpic1 = manager.createEpic(new Epic("Epic_1", "Epic_1", 0, Status.NEW));
+        int idTask1 = manager.createTask(new Task("Task_1", "Task_1", 0, Status.NEW,
+                LocalDateTime.of(2024, 4, 8, 23, 0), Duration.ofMinutes(50)));
+        int idEpic1 = manager.createEpic(new Epic("Epic_1", "Epic_1", 0, Status.NEW,
+                LocalDateTime.of(2024, 4, 9, 10, 45),
+                LocalDateTime.of(2024, 4, 10, 22, 30), Duration.ofMinutes(100)));
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(file);
 
-        int idNewTask = loadedManager.createTask(new Task("Task_2", "Task_2", 0, Status.NEW));
+        int idNewTask = loadedManager.createTask(new Task("Task_2", "Task_2", 0, Status.NEW,
+                LocalDateTime.of(2024, 4, 8, 23, 0), Duration.ofMinutes(50)));
 
         assertEquals(3, idNewTask);
+    }
+
+    @Test
+    void testSaveToFile() {
+        Task task = new Task("Task_1", "Task_1", 0, Status.NEW,
+                LocalDateTime.of(2024, 4, 8, 23, 0), Duration.ofMinutes(50));
+
+        assertDoesNotThrow(() -> manager.createTask(task), "Сохранение в файл не должно выбросить исключение.");
+    }
+
+    @Test
+    void testLoadFromFile() {
+        assertDoesNotThrow(() -> FileBackedTaskManager.loadFromFile(file), "При загрузке из файла не должно выброситься исключение.");
     }
 }
