@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -104,6 +105,11 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         assertEquals(originalEpic.getStatus(), fromFileEpic.getStatus(), "Статус эпика не совпадает.");
         assertEquals(originalEpic.getTitle(), fromFileEpic.getTitle(), "Название эпика не совпадает.");
         assertEquals(originalEpic.getDescription(), fromFileEpic.getDescription(), "Описание эпика не совпадает.");
+
+        Set<Task> originalPrioritizedTasks = manager.prioritizedTasks;
+        Set<Task> fromFilePrioritizedTasks = loadedManager.prioritizedTasks;
+
+        assertEquals(originalPrioritizedTasks, fromFilePrioritizedTasks, "Список загруженных приоритетных задач не совпадает с оригинальным.");
     }
 
     @Test
