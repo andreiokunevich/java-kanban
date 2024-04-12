@@ -96,7 +96,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    public static Task fromString(String value) {
+    public Task fromString(String value) {
         Task task = null;
         if (Character.isDigit(value.charAt(0))) {
             String[] elements = value.split(",");
@@ -112,10 +112,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             switch (type) {
                 case "TASK":
                     task = new Task(title, description, id, Status.valueOf(status), startTime, duration);
+                    prioritizedTasks.add(task);
                     break;
                 case "SUBTASK":
                     int epicId = Integer.parseInt(elements[8]);
                     task = new SubTask(title, description, id, Status.valueOf(status), epicId, startTime, duration);
+                    prioritizedTasks.add(task);
                     break;
                 case "EPIC":
                     task = new Epic(title, description, id, Status.valueOf(status), startTime, endTime, duration);
@@ -136,7 +138,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             br.readLine();
             while (br.ready()) {
                 if (!(line = br.readLine()).equals(" ")) {
-                    Task task = fromString(line);
+                    Task task = fileBackedTaskManager.fromString(line);
                     if (task != null) {
                         if (task instanceof Epic) {
                             fileBackedTaskManager.epics.put(task.getId(), (Epic) task);
