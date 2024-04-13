@@ -1,11 +1,14 @@
 package ru.yandex.practicum.taskmanager.tasks;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public class SubTask extends Task {
 
     protected int epicId;
 
-    public SubTask(String title, String description, int id, Status status, int epicId) {
-        super(title, description, id, status);
+    public SubTask(String title, String description, int id, Status status, int epicId, LocalDateTime startTime, Duration duration) {
+        super(title, description, id, status, startTime, duration);
         this.epicId = epicId;
         this.type = Type.SUBTASK;
     }
@@ -22,6 +25,9 @@ public class SubTask extends Task {
                 ", description='" + description + '\'' +
                 ", id=" + id +
                 ", status=" + status +
+                ", duration=" + getDuration().toMinutes() +
+                ", startTime=" + getStartTime().format(formatter) +
+                ", endTime=" + getEndTime().format(formatter) +
                 '}';
     }
 }
