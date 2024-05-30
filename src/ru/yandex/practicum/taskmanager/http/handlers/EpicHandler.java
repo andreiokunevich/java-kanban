@@ -1,34 +1,18 @@
 package ru.yandex.practicum.taskmanager.http.handlers;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import ru.yandex.practicum.taskmanager.http.adapters.EpicAdapter;
 
-import ru.yandex.practicum.taskmanager.http.adapters.SubtaskAdapter;
 import ru.yandex.practicum.taskmanager.manager.TaskManager;
 import ru.yandex.practicum.taskmanager.tasks.Epic;
-import ru.yandex.practicum.taskmanager.tasks.SubTask;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-public class EpicHandler extends BaseHttpHandler implements HttpHandler {
-
-    private final TaskManager taskManager;
+public class EpicHandler extends BaseHttpHandler {
 
     public EpicHandler(TaskManager taskManager) {
-        this.taskManager = taskManager;
+        super(taskManager);
     }
-
-    Gson gsonEpic = new GsonBuilder()
-            .setPrettyPrinting()
-            .serializeNulls()
-            .registerTypeAdapter(Epic.class, new EpicAdapter())
-            .registerTypeAdapter(SubTask.class, new SubtaskAdapter())
-            .create();
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
@@ -61,24 +45,20 @@ public class EpicHandler extends BaseHttpHandler implements HttpHandler {
                 }
                 break;
             default:
-                writeResponse(httpExchange, "Неизвестный эндпоинт", 404);
+                writeResponse(httpExchange, "Неизвестный эндпоинт", 500);
         }
 
     }
 
     private void handleGetAllEpics(HttpExchange httpExchange) throws IOException {
-        if (taskManager.getListOfEpics().size() != 0) {
-            String jsonEpic = gsonEpic.toJson(taskManager.getListOfEpics());
-            writeResponse(httpExchange, jsonEpic, 200);
-        } else {
-            writeResponse(httpExchange, "На текущий момент эпиков нет.", 404);
-        }
+        String jsonEpic = gson.toJson(taskManager.getListOfEpics());
+        writeResponse(httpExchange, jsonEpic, 200);
     }
 
     private void handleGetEpicById(HttpExchange httpExchange, int id) throws IOException {
         Epic epic = taskManager.getEpicById(id);
         if (epic != null) {
-            String jsonEpic = gsonEpic.toJson(epic);
+            String jsonEpic = gson.toJson(epic);
             writeResponse(httpExchange, jsonEpic, 200);
         } else {
             writeTaskNotFound(httpExchange, id);
@@ -86,18 +66,28 @@ public class EpicHandler extends BaseHttpHandler implements HttpHandler {
     }
 
     private void handleCreateEpic(HttpExchange httpExchange) throws IOException {
-        Epic epic = gsonEpic.fromJson(new String(httpExchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8), Epic.class);
-        taskManager.createEpic(epic);
-        writeResponse(httpExchange, "Эпик успешно создан.", 201);
+        String body = new String(httpExchange.getRequestBody().readAllBytes(), BaseHttpHandler.DEFAULT_CHARSET);
+        if (!body.isEmpty()) {
+            Epic epic = gson.fromJson(body, Epic.class);
+            taskManager.createEpic(epic);
+            writeResponse(httpExchange, "Эпик успешно создан.", 201);
+        } else {
+            writeResponse(httpExchange, "Пустое тело запроса.", 400);
+        }
     }
 
     private void handleUpdateEpic(HttpExchange httpExchange, int id) throws IOException {
-        if (taskManager.getEpicById(id) != null) {
-            Epic epic = gsonEpic.fromJson(new String(httpExchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8), Epic.class);
-            taskManager.updateEpic(epic);
-            writeResponse(httpExchange, "Эпик успешно обновлен.", 201);
+        String body = new String(httpExchange.getRequestBody().readAllBytes(), BaseHttpHandler.DEFAULT_CHARSET);
+        if (!body.isEmpty()) {
+            Epic epic = gson.fromJson(body, Epic.class);
+            if (taskManager.getEpicById(id) != null) {
+                taskManager.updateEpic(epic);
+                writeResponse(httpExchange, "Эпик успешно обновлен.", 201);
+            } else {
+                writeTaskNotFound(httpExchange, id);
+            }
         } else {
-            writeTaskNotFound(httpExchange, id);
+            writeResponse(httpExchange, "Пустое тело запроса.", 400);
         }
     }
 
@@ -113,7 +103,7 @@ public class EpicHandler extends BaseHttpHandler implements HttpHandler {
     private void handleGetEpicSubtasks(HttpExchange httpExchange, int id) throws IOException {
         try {
             if (taskManager.getAllSubTasksOfEpic(id).size() != 0) {
-                String jsonEpic = gsonEpic.toJson(taskManager.getAllSubTasksOfEpic(id));
+                String jsonEpic = gson.toJson(taskManager.getAllSubTasksOfEpic(id));
                 writeResponse(httpExchange, jsonEpic, 200);
             } else {
                 writeResponse(httpExchange, "На текущий момент у эпика нет подзадач.", 404);

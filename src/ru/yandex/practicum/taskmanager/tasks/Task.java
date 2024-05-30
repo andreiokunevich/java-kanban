@@ -14,8 +14,8 @@ public class Task {
     protected Type type;
     protected Duration duration;
     protected LocalDateTime startTime;
-    protected final LocalDateTime defaultDateTime = LocalDateTime.MAX;
-    protected final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
+    protected final transient LocalDateTime defaultDateTime = LocalDateTime.MAX;
+    protected final transient DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
 
     public Task(String title, String description, int id, Status status, LocalDateTime startTime, Duration duration) {
         this.title = title;

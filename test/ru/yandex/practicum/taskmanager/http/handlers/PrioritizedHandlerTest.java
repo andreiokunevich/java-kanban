@@ -6,13 +6,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.taskmanager.http.adapters.SubtaskAdapter;
-import ru.yandex.practicum.taskmanager.http.adapters.TaskAdapter;
+import ru.yandex.practicum.taskmanager.http.adapters.DurationAdapter;
+import ru.yandex.practicum.taskmanager.http.adapters.LocalDateTimeAdapter;
 import ru.yandex.practicum.taskmanager.http.server.HttpTaskServer;
 import ru.yandex.practicum.taskmanager.manager.InMemoryTaskManager;
 import ru.yandex.practicum.taskmanager.manager.TaskManager;
 import ru.yandex.practicum.taskmanager.tasks.Status;
-import ru.yandex.practicum.taskmanager.tasks.SubTask;
 import ru.yandex.practicum.taskmanager.tasks.Task;
 
 import java.io.IOException;
@@ -27,10 +26,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PrioritizedHandlerTest {
     private static Gson gson;
-    TaskManager manager = new InMemoryTaskManager();
-    HttpTaskServer httpTaskServer = new HttpTaskServer(manager);
+    protected TaskManager manager = new InMemoryTaskManager();
+    protected HttpTaskServer httpTaskServer = new HttpTaskServer(manager);
 
-    PrioritizedHandlerTest() throws IOException {
+    public PrioritizedHandlerTest() throws IOException {
     }
 
     @BeforeAll
@@ -38,8 +37,8 @@ class PrioritizedHandlerTest {
         gson = new GsonBuilder()
                 .serializeNulls()
                 .setPrettyPrinting()
-                .registerTypeAdapter(Task.class, new TaskAdapter())
-                .registerTypeAdapter(SubTask.class, new SubtaskAdapter())
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .registerTypeAdapter(Duration.class, new DurationAdapter())
                 .create();
     }
 
@@ -73,6 +72,6 @@ class PrioritizedHandlerTest {
         HttpResponse<String> response1 = client.send(request1, HttpResponse.BodyHandlers.ofString());
 
         assertEquals(200, response1.statusCode());
-        assertEquals(1,manager.getPrioritizedTasks().size(),"Размер списка приоритетных задач ошибочен.");
+        assertEquals(1, manager.getPrioritizedTasks().size(), "Размер списка приоритетных задач ошибочен.");
     }
 }

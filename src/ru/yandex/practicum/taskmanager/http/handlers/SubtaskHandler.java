@@ -1,10 +1,6 @@
 package ru.yandex.practicum.taskmanager.http.handlers;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import ru.yandex.practicum.taskmanager.http.adapters.SubtaskAdapter;
 import ru.yandex.practicum.taskmanager.manager.TaskManager;
 import ru.yandex.practicum.taskmanager.tasks.SubTask;
 
@@ -12,19 +8,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-public class SubtaskHandler extends BaseHttpHandler implements HttpHandler {
-
-    private final TaskManager taskManager;
+public class SubtaskHandler extends BaseHttpHandler {
 
     public SubtaskHandler(TaskManager taskManager) {
-        this.taskManager = taskManager;
+        super(taskManager);
     }
-
-    Gson gsonSubTask = new GsonBuilder()
-            .setPrettyPrinting()
-            .serializeNulls()
-            .registerTypeAdapter(SubTask.class, new SubtaskAdapter())
-            .create();
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
@@ -53,22 +41,18 @@ public class SubtaskHandler extends BaseHttpHandler implements HttpHandler {
                 }
                 break;
             default:
-                writeResponse(httpExchange, "Неизвестный эндпоинт", 404);
+                writeResponse(httpExchange, "Неизвестный эндпоинт", 500);
         }
     }
 
     private void handleGetAllSubtasks(HttpExchange httpExchange) throws IOException {
-        if (taskManager.getListOfSubTasks().size() != 0) {
-            String jsonSubtask = gsonSubTask.toJson(taskManager.getListOfSubTasks());
-            writeResponse(httpExchange, jsonSubtask, 200);
-        } else {
-            writeResponse(httpExchange, "На текущий момент подзадач нет.", 404);
-        }
+        String jsonSubtask = gson.toJson(taskManager.getListOfSubTasks());
+        writeResponse(httpExchange, jsonSubtask, 200);
     }
 
     private void handleGetSubtaskById(HttpExchange httpExchange, int id) throws IOException {
         if (taskManager.getSubTaskById(id) != null) {
-            String jsonSubtask = gsonSubTask.toJson(taskManager.getSubTaskById(id));
+            String jsonSubtask = gson.toJson(taskManager.getSubTaskById(id));
             writeResponse(httpExchange, jsonSubtask, 200);
         } else {
             writeTaskNotFound(httpExchange, id);
@@ -76,30 +60,40 @@ public class SubtaskHandler extends BaseHttpHandler implements HttpHandler {
     }
 
     private void handleCreateSubtask(HttpExchange httpExchange) throws IOException {
-        SubTask subTask = gsonSubTask.fromJson(new String(httpExchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8), SubTask.class);
-        if (taskManager.checkAllIntersections(subTask)) {
-            int subtaskId = taskManager.createSubTask(subTask);
-            if (subtaskId == -1) {
-                writeResponse(httpExchange, "Подзадача не может быть создана без эпика.", 404);
-            } else {
-                writeResponse(httpExchange, "Подзадача успешно создана.", 201);
-            }
-        } else {
-            writeIntersection(httpExchange);
-        }
-    }
-
-    private void handleUpdateSubtask(HttpExchange httpExchange, int id) throws IOException {
-        if (taskManager.getSubTaskById(id) != null) {
-            SubTask subTask = gsonSubTask.fromJson(new String(httpExchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8), SubTask.class);
-            if (taskManager.checkAllIntersectionsUpdate(subTask)) {
-                taskManager.updateSubTask(subTask);
-                writeResponse(httpExchange, "Подзадача успешно обновлена.", 201);
+        String body = new String(httpExchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        if (!body.isEmpty()) {
+            SubTask subTask = gson.fromJson(body, SubTask.class);
+            if (taskManager.checkAllIntersections(subTask)) {
+                int subtaskId = taskManager.createSubTask(subTask);
+                if (subtaskId == -1) {
+                    writeResponse(httpExchange, "Подзадача не может быть создана без эпика.", 404);
+                } else {
+                    writeResponse(httpExchange, "Подзадача успешно создана.", 201);
+                }
             } else {
                 writeIntersection(httpExchange);
             }
         } else {
-            writeTaskNotFound(httpExchange, id);
+            writeResponse(httpExchange, "Пустое тело запроса.", 400);
+        }
+    }
+
+    private void handleUpdateSubtask(HttpExchange httpExchange, int id) throws IOException {
+        String body = new String(httpExchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        if (!body.isEmpty()) {
+            SubTask subTask = gson.fromJson(body, SubTask.class);
+            if (taskManager.getSubTaskById(id) != null) {
+                if (taskManager.checkAllIntersectionsUpdate(subTask)) {
+                    taskManager.updateSubTask(subTask);
+                    writeResponse(httpExchange, "Подзадача успешно обновлена.", 201);
+                } else {
+                    writeIntersection(httpExchange);
+                }
+            } else {
+                writeTaskNotFound(httpExchange, id);
+            }
+        } else {
+            writeResponse(httpExchange, "Пустое тело запроса.", 400);
         }
     }
 

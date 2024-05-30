@@ -49,6 +49,5 @@ public class HttpTaskServer {
     public static void main(String[] args) throws IOException {
         HttpTaskServer httpTaskServer = new HttpTaskServer(Managers.getFileBackedTaskManager(new File("data.csv")));
         httpTaskServer.start();
-        httpTaskServer.stop();
     }
 }

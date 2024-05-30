@@ -6,15 +6,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.taskmanager.http.adapters.EpicAdapter;
-import ru.yandex.practicum.taskmanager.http.adapters.SubtaskAdapter;
-import ru.yandex.practicum.taskmanager.http.adapters.TaskAdapter;
+import ru.yandex.practicum.taskmanager.http.adapters.DurationAdapter;
+import ru.yandex.practicum.taskmanager.http.adapters.LocalDateTimeAdapter;
+
 import ru.yandex.practicum.taskmanager.http.server.HttpTaskServer;
 import ru.yandex.practicum.taskmanager.manager.InMemoryTaskManager;
 import ru.yandex.practicum.taskmanager.manager.TaskManager;
-import ru.yandex.practicum.taskmanager.tasks.Epic;
 import ru.yandex.practicum.taskmanager.tasks.Status;
-import ru.yandex.practicum.taskmanager.tasks.SubTask;
 import ru.yandex.practicum.taskmanager.tasks.Task;
 
 import java.io.IOException;
@@ -40,9 +38,8 @@ class HistoryHandlerTest {
         gson = new GsonBuilder()
                 .serializeNulls()
                 .setPrettyPrinting()
-                .registerTypeAdapter(Task.class, new TaskAdapter())
-                .registerTypeAdapter(SubTask.class, new SubtaskAdapter())
-                .registerTypeAdapter(Epic.class, new EpicAdapter())
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .registerTypeAdapter(Duration.class, new DurationAdapter())
                 .create();
     }
 
@@ -78,6 +75,6 @@ class HistoryHandlerTest {
         HttpResponse<String> response1 = client.send(request1, HttpResponse.BodyHandlers.ofString());
 
         assertEquals(200, response1.statusCode());
-        assertEquals(1,manager.getHistory().size(),"Размер истории ошибочен.");
+        assertEquals(1, manager.getHistory().size(), "Размер истории ошибочен.");
     }
 }

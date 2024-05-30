@@ -5,7 +5,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.taskmanager.http.adapters.TaskAdapter;
+import ru.yandex.practicum.taskmanager.http.adapters.DurationAdapter;
+import ru.yandex.practicum.taskmanager.http.adapters.LocalDateTimeAdapter;
 import ru.yandex.practicum.taskmanager.http.server.HttpTaskServer;
 import ru.yandex.practicum.taskmanager.manager.InMemoryTaskManager;
 import ru.yandex.practicum.taskmanager.manager.TaskManager;
@@ -35,9 +36,10 @@ public class TaskHandlerTest {
     @BeforeAll
     static void createGson() {
         gson = new GsonBuilder()
-                .setPrettyPrinting()
                 .serializeNulls()
-                .registerTypeAdapter(Task.class, new TaskAdapter())
+                .setPrettyPrinting()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .registerTypeAdapter(Duration.class, new DurationAdapter())
                 .create();
     }
 
