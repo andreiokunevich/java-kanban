@@ -1,9 +1,8 @@
 package ru.yandex.practicum.taskmanager.util;
 
-import ru.yandex.practicum.taskmanager.manager.HistoryManager;
-import ru.yandex.practicum.taskmanager.manager.InMemoryHistoryManager;
-import ru.yandex.practicum.taskmanager.manager.InMemoryTaskManager;
-import ru.yandex.practicum.taskmanager.manager.TaskManager;
+import ru.yandex.practicum.taskmanager.manager.*;
+
+import java.io.File;
 
 public class Managers {
 
@@ -24,5 +23,9 @@ public class Managers {
 
     public static InMemoryHistoryManager getInMemoryHistoryManager() {
         return new InMemoryHistoryManager();
+    }
+
+    public static FileBackedTaskManager getFileBackedTaskManager(File file) {
+        return new FileBackedTaskManager(file);
     }
 }

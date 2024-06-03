@@ -1,0 +1,4 @@
+id,type,name,status,description,startTime,endTime,duration,epic
+1,TASK,Task_1,NEW,Task_1,23:00 08.04.2024,23:50 08.04.2024,50
+2,EPIC,Epic_1,NEW,Epic_1,10:45 09.04.2024,22:30 10.04.2024,100
+ 

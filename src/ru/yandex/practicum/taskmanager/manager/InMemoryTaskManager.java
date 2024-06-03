@@ -37,10 +37,7 @@ public class InMemoryTaskManager implements TaskManager {
         task.setId(id);
 
         if (task.getStartTime() != defaultDateTime) {
-            Optional<Task> any = getPrioritizedTasks().stream()
-                    .filter(t -> checkIntersection(t, task))
-                    .findAny();
-            if (any.isEmpty()) {
+            if (checkAllIntersections(task)) {
                 tasks.put(id, task);
                 prioritizedTasks.add(task);
             }
@@ -57,10 +54,7 @@ public class InMemoryTaskManager implements TaskManager {
             subTask.setId(id);
 
             if (subTask.getStartTime() != defaultDateTime) {
-                Optional<Task> any = getPrioritizedTasks().stream()
-                        .filter(s -> checkIntersection(s, subTask))
-                        .findAny();
-                if (any.isEmpty()) {
+                if (checkAllIntersections(subTask)) {
                     subtasks.put(id, subTask);
                     epics.get(subTask.getEpicId()).addSubtaskId(subTask.getId());
                     prioritizedTasks.add(subTask);
@@ -212,11 +206,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void updateTask(Task task) {
         if (tasks.get(task.getId()) != null) {
             if (task.getStartTime() != defaultDateTime) {
-                Optional<Task> any = getPrioritizedTasks().stream()
-                        .filter(t -> !t.equals(task))
-                        .filter(t -> checkIntersection(t, task))
-                        .findAny();
-                if (any.isEmpty()) {
+                if (checkAllIntersectionsUpdate(task)) {
                     prioritizedTasks.remove(tasks.get(task.getId()));
                     tasks.put(task.getId(), task);
                     prioritizedTasks.add(task);
@@ -229,11 +219,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void updateSubTask(SubTask subTask) {
         if (epics.containsKey(subTask.getEpicId()) && subtasks.get(subTask.getId()) != null) {
             if (subTask.getStartTime() != defaultDateTime) {
-                Optional<Task> any = getPrioritizedTasks().stream()
-                        .filter(s -> !s.equals(subTask))
-                        .filter(s -> checkIntersection(s, subTask))
-                        .findAny();
-                if (any.isEmpty()) {
+                if (checkAllIntersectionsUpdate(subTask)) {
                     prioritizedTasks.remove(subtasks.get(subTask.getId()));
                     subtasks.put(subTask.getId(), subTask);
                     prioritizedTasks.add(subTask);
@@ -298,6 +284,21 @@ public class InMemoryTaskManager implements TaskManager {
         boolean var3 = task2.getEndTime().isBefore(task1.getStartTime());
         boolean var4 = task2.getEndTime().isEqual(task1.getStartTime()) && task2.getStartTime().isBefore(task1.getEndTime());
         return !(var1 || var2 || var3 || var4);
+    }
+
+    public boolean checkAllIntersections(Task task) {
+        Optional<Task> any = getPrioritizedTasks().stream()
+                .filter(t -> checkIntersection(t, task))
+                .findAny();
+        return any.isEmpty();
+    }
+
+    public boolean checkAllIntersectionsUpdate(Task task) {
+        Optional<Task> any = getPrioritizedTasks().stream()
+                .filter(t -> !t.equals(task))
+                .filter(t -> checkIntersection(t, task))
+                .findAny();
+        return any.isEmpty();
     }
 
     @Override
